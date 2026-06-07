@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Data Structure: Array vs Linked List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+        @keyframes enqueue {
+            from { transform: scale(0) translateX(-50px); opacity: 0; }
+            to { transform: scale(1) translateX(0); opacity: 1; }
+        }
+        @keyframes dequeue {
+            from { transform: scale(1) translateX(0); opacity: 1; }
+            to { transform: scale(0) translateX(50px); opacity: 0; }
+        }
+        
+        .animate-slide-in { animation: slideIn 0.5s ease-out; }
+        .animate-enqueue { animation: enqueue 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .animate-dequeue { animation: dequeue 0.4s ease-in forwards; }
+        
+        .node-enter { animation: enqueue 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .node-exit { animation: dequeue 0.4s ease-in forwards; }
+        
+        /* Array cell styles */
+        .array-cell {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .array-cell.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+        .array-cell.front {
+            border: 3px solid #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        .array-cell.rear {
+            border: 3px solid #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+        }
+        
+        /* Linked list node styles */
+        .ll-node {
+            transition: all 0.3s ease;
+        }
+        .ll-node.highlight {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+        .arrow {
+            stroke-dasharray: 5;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+        
+        /* Glass morphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="relative overflow-hidden bg-slate-800 border-b border-slate-700">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Queue Data Structures
+                    </h1>
+                    <p class="mt-2 text-slate-400 text-lg">Array vs Linked List Implementation — Interactive Visualization</p>
+                </div>
+                <div class="hidden md:flex items-center gap-4">
+                    <div class="glass rounded-lg px-4 py-2 text-sm">
+                        <span class="text-emerald-400 font-bold">FIFO</span>
+                        <span class="text-slate-400 ml-2">First In, First Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- Theory Section -->
+        <section class="grid md:grid-cols-2 gap-6 animate-slide-in">
+            <!-- Array Queue Theory -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-blue-400">Array-Based Queue</h2>
+                </div>
+                <div class="space-y-3 text-slate-300">
+                    <p>Implements a queue using a fixed-size or dynamic array with <span class="text-amber-400 font-mono">front</span> and <span class="text-amber-400 font-mono">rear</span> pointers.</p>
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Enqueue</div>
+                            <div class="code-font text-xs text-slate-400">O(1) amortized</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Dequeue</div>
+                            <div class="code-font text-xs text-slate-400">O(1)</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-rose-400 font-bold text-sm mb-1">Space</div>
+                            <div class="code-font text-xs text-slate-400">O(n) fixed</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-amber-400 font-bold text-sm mb-1">Limitation</div>
+                            <div class="code-font text-xs text-slate-400">Fixed capacity*</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <p class="text-xs text-blue-300"><strong>Circular Buffer:</strong> Uses modulo arithmetic to reuse empty spaces at the front, preventing "false overflow".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked List Queue Theory -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-purple-400">Linked List Queue</h2>
+                </div>
+                <div class="space-y-3 text-slate-300">
+                    <p>Implements a queue using nodes with <span class="text-amber-400 font-mono">data</span> and <span class="text-amber-400 font-mono">next</span> pointers, maintaining <span class="text-amber-400 font-mono">head</span> and <span class="text-amber-400 font-mono">tail</span> references.</p>
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Enqueue</div>
+                            <div class="code-font text-xs text-slate-400">O(1)</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Dequeue</div>
+                            <div class="code-font text-xs text-slate-400">O(1)</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Space</div>
+                            <div class="code-font text-xs text-slate-400">O(n) dynamic</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                            <div class="text-emerald-400 font-bold text-sm mb-1">Advantage</div>
+                            <div class="code-font text-xs text-slate-400">No capacity limit</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        <p class="text-xs text-purple-300"><strong>Dynamic Growth:</strong> Memory allocated per element. No wasted space, but extra memory overhead per node for the pointer.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Visualizations -->
+        <section class="grid lg:grid-cols-2 gap-8">
+            
+            <!-- Array Queue Visualization -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-blue-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                        Array Queue (Circular)
+                    </h3>
+                    <div class="flex gap-2 text-xs">
+                        <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Front</span>
+                        <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Rear</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Array Display -->
+                    <div class="relative">
+                        <div class="flex justify-center items-end gap-1 h-32" id="arrayContainer">
+                            <!-- Generated by JS -->
+                        </div>
+                        <!-- Indices -->
+                        <div class="flex justify-center gap-1 mt-2" id="arrayIndices">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Pointers Info -->
+                    <div class="flex justify-between text-sm code-font bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                        <span class="text-emerald-400">front: <span id="arrayFront">-1</span></span>
+                        <span class="text-amber-400">rear: <span id="arrayRear">-1</span></span>
+                        <span class="text-blue-400">size: <span id="arraySize">0</span>/<span id="arrayCapacity">8</span></span>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex gap-2">
+                        <input type="number" id="arrayInput" placeholder="Value" 
+                            class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-24 text-center focus:outline-none focus:border-blue-500 transition-colors code-font"
+                            value="" min="0" max="99">
+                        <button onclick="arrayEnqueue()" 
+                            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Enqueue
+                        </button>
+                        <button onclick="arrayDequeue()" 
+                            class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                            Dequeue
+                        </button>
+                        <button onclick="resetArray()" 
+                            class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Code Display -->
+                    <div class="bg-slate-950 rounded-lg p-4 border border-slate-800 overflow-x-auto">
+                        <div class="text-xs text-slate-500 mb-2 uppercase tracking-wider font-bold">Current Operation</div>
+                        <pre class="code-font text-sm text-slate-300" id="arrayCode">
+<span class="text-purple-400">class</span> <span class="text-yellow-300">ArrayQueue</span> {
+    <span class="text-slate-500">// Click Enqueue or Dequeue to see code</span>
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked List Queue Visualization -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                        Linked List Queue
+                    </h3>
+                    <div class="flex gap-2 text-xs">
+                        <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Head</span>
+                        <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Tail</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Linked List Display -->
+                    <div class="relative overflow-x-auto pb-4">
+                        <div class="flex items-center gap-0 min-h-[120px]" id="linkedListContainer">
+                            <div class="text-slate-500 text-sm italic" id="llEmpty">Empty Queue</div>
+                        </div>
+                    </div>
+
+                    <!-- Pointers Info -->
+                    <div class="flex justify-between text-sm code-font bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                        <span class="text-emerald-400">head: <span id="llHead">null</span></span>
+                        <span class="text-amber-400">tail: <span id="llTail">null</span></span>
+                        <span class="text-blue-400">size: <span id="llSize">0</span></span>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex gap-2">
+                        <input type="number" id="llInput" placeholder="Value" 
+                            class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-24 text-center focus:outline-none focus:border-purple-500 transition-colors code-font"
+                            value="" min="0" max="99">
+                        <button onclick="llEnqueue()" 
+                            class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Enqueue
+                        </button>
+                        <button onclick="llDequeue()" 
+                            class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                            Dequeue
+                        </button>
+                        <button onclick="resetLL()" 
+                            class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Code Display -->
+                    <div class="bg-slate-950 rounded-lg p-4 border border-slate-800 overflow-x-auto">
+                        <div class="text-xs text-slate-500 mb-2 uppercase tracking-wider font-bold">Current Operation</div>
+                        <pre class="code-font text-sm text-slate-300" id="llCode">
+<span class="text-purple-400">class</span> <span class="text-yellow-300">Node</span> {
+    <span class="text-slate-500">// Click Enqueue or Dequeue to see code</span>
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Table -->
+        <section class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+            <div class="px-6 py-4 border-b border-slate-700">
+                <h3 class="text-xl font-bold text-slate-200">Detailed Comparison</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-slate-400 text-sm uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold">Aspect</th>
+                            <th class="px-6 py-4 font-semibold text-blue-400">Array Queue</th>
+                            <th class="px-6 py-4 font-semibold text-purple-400">Linked List Queue</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700 text-slate-300">
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Memory Allocation</td>
+                            <td class="px-6 py-4">Contiguous (fixed block)</td>
+                            <td class="px-6 py-4">Scattered (node per element)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Memory Overhead</td>
+                            <td class="px-6 py-4">Low (just data + 2 pointers)</td>
+                            <td class="px-6 py-4">High (extra pointer per node)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Cache Performance</td>
+                            <td class="px-6 py-4 text-emerald-400">Excellent (spatial locality)</td>
+                            <td class="px-6 py-4 text-amber-400">Poor (pointer chasing)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Overflow Condition</td>
+                            <td class="px-6 py-4">When rear == capacity - 1 (linear) or full (circular)</td>
+                            <td class="px-6 py-4 text-emerald-400">Only when heap memory exhausted</td>
+                        </tr>
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Implementation Complexity</td>
+                            <td class="px-6 py-4">Moderate (circular logic)</td>
+                            <td class="px-6 py-4">Simple (straightforward)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4 font-medium">Use Case</td>
+                            <td class="px-6 py-4">Bounded buffers, high-performance systems</td>
+                            <td class="px-6 py-4">Unbounded queues, when size unknown</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Code Reference -->
+        <section class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+            <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-200">Implementation Reference (Python)</h3>
+                <div class="flex gap-2">
+                    <button onclick="showCode('array')" id="btnArrayCode" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition-all">Array</button>
+                    <button onclick="showCode('linked')" id="btnLinkedCode" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all">Linked List</button>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-950 overflow-x-auto">
+                <pre class="code-font text-sm" id="refCode">
+<span class="text-purple-400">class</span> <span class="text-yellow-300">CircularArrayQueue</span>:
+    <span class="text-purple-400">def</span> <span class="text-blue-400">__init__</span>(<span class="text-orange-400">self</span>, capacity):
+        <span class="text-orange-400">self</span>.capacity = capacity
+        <span class="text-orange-400">self</span>.queue = [<span class="text-orange-400">None</span>] * capacity
+        <span class="text-orange-400">self</span>.front = <span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">enqueue</span>(<span class="text-orange-400">self</span>, data):
+        <span class="text-slate-500"># Check if queue is full</span>
+        <span class="text-purple-400">if</span> (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity == <span class="text-orange-400">self</span>.front:
+            <span class="text-purple-400">raise</span> <span class="text-yellow-300">Exception</span>(<span class="text-green-400">"Queue Overflow"</span>)
+        
+        <span class="text-slate-500"># First element</span>
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+            <span class="text-orange-400">self</span>.front = <span class="text-green-400">0</span>
+        
+        <span class="text-orange-400">self</span>.rear = (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity
+        <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.rear] = data
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">dequeue</span>(<span class="text-orange-400">self</span>):
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+            <span class="text-purple-400">raise</span> <span class="text-yellow-300">Exception</span>(<span class="text-green-400">"Queue Underflow"</span>)
+        
+        data = <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.front]
+        
+        <span class="text-slate-500"># Last element removed</span>
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == <span class="text-orange-400">self</span>.rear:
+            <span class="text-orange-400">self</span>.front = <span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+        <span class="text-purple-400">else</span>:
+            <span class="text-orange-400">self</span>.front = (<span class="text-orange-400">self</span>.front + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity
+        
+        <span class="text-purple-400">return</span> data</pre>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // ==================== ARRAY QUEUE ====================
+        const ARRAY_CAPACITY = 8;
+        let arrayQueue = {
+            data: new Array(ARRAY_CAPACITY).fill(null),
+            front: -1,
+            rear: -1,
+            size: 0
+        };
+
+        function renderArray() {
+            const container = document.getElementById('arrayContainer');
+            const indices = document.getElementById('arrayIndices');
+            container.innerHTML = '';
+            indices.innerHTML = '';
+
+            for (let i = 0; i < ARRAY_CAPACITY; i++) {
+                // Cell
+                const cell = document.createElement('div');
+                const isActive = arrayQueue.data[i] !== null;
+                const isFront = arrayQueue.front === i && isActive;
+                const isRear = arrayQueue.rear === i && isActive;
+                
+                let classes = 'array-cell w-12 h-16 border-2 rounded-lg flex items-center justify-center text-lg font-bold code-font ';
+                if (isActive) {
+                    classes += 'active ';
+                } else {
+                    classes += 'bg-slate-800 border-slate-600 text-slate-500 ';
+                }
+                if (isFront) classes += 'front ';
+                if (isRear) classes += 'rear ';
+                
+                cell.className = classes;
+                cell.textContent = isActive ? arrayQueue.data[i] : '';
+                cell.id = `array-cell-${i}`;
+                container.appendChild(cell);
+
+                // Index
+                const idx = document.createElement('div');
+                idx.className = 'w-12 text-center text-xs text-slate-500 code-font';
+                idx.textContent = i;
+                indices.appendChild(idx);
+            }
+
+            document.getElementById('arrayFront').textContent = arrayQueue.front;
+            document.getElementById('arrayRear').textContent = arrayQueue.rear;
+            document.getElementById('arraySize').textContent = arrayQueue.size;
+        }
+
+        function arrayEnqueue() {
+            const input = document.getElementById('arrayInput');
+            const val = parseInt(input.value);
+            
+            if (isNaN(val)) {
+                alert('Please enter a valid number');
+                return;
+            }
+
+            // Check full (circular)
+            if ((arrayQueue.rear + 1) % ARRAY_CAPACITY === arrayQueue.front) {
+                showArrayCode('overflow');
+                shakeElement(document.getElementById('arrayContainer'));
+                return;
+            }
+
+            if (arrayQueue.front === -1) {
+                arrayQueue.front = 0;
+            }
+            
+            arrayQueue.rear = (arrayQueue.rear + 1) % ARRAY_CAPACITY;
+            arrayQueue.data[arrayQueue.rear] = val;
+            arrayQueue.size++;
+
+            renderArray();
+            showArrayCode('enqueue');
+            
+            // Animate the new cell
+            const cell = document.getElementById(`array-cell-${arrayQueue.rear}`);
+            cell.classList.add('animate-enqueue');
+            setTimeout(() => cell.classList.remove('animate-enqueue'), 400);
+
+            input.value = '';
+            input.focus();
+        }
+
+        function arrayDequeue() {
+            if (arrayQueue.front === -1) {
+                showArrayCode('underflow');
+                shakeElement(document.getElementById('arrayContainer'));
+                return;
+            }
+
+            const frontIdx = arrayQueue.front;
+            const cell = document.getElementById(`array-cell-${frontIdx}`);
+            cell.classList.add('animate-dequeue');
+
+            setTimeout(() => {
+                arrayQueue.data[frontIdx] = null;
+                
+                if (arrayQueue.front === arrayQueue.rear) {
+                    arrayQueue.front = arrayQueue.rear = -1;
+                } else {
+                    arrayQueue.front = (arrayQueue.front + 1) % ARRAY_CAPACITY;
+                }
+                arrayQueue.size--;
+                
+                renderArray();
+            }, 350);
+
+            showArrayCode('dequeue');
+        }
+
+        function resetArray() {
+            arrayQueue = {
+                data: new Array(ARRAY_CAPACITY).fill(null),
+                front: -1,
+                rear: -1,
+                size: 0
+            };
+            renderArray();
+            showArrayCode('reset');
+        }
+
+        function showArrayCode(operation) {
+            const codeEl = document.getElementById('arrayCode');
+            const codes = {
+                enqueue: `<span class="text-purple-400">def</span> <span class="text-blue-400">enqueue</span>(<span class="text-orange-400">self</span>, data):
+    <span class="text-slate-500"># Check overflow</span>
+    <span class="text-purple-400">if</span> (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % cap == <span class="text-orange-400">self</span>.front:
+        <span class="text-purple-400">raise</span> <span class="text-yellow-300">Overflow</span>
+    
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+        <span class="text-orange-400">self</span>.front = <span class="text-green-400">0</span>
+    
+    <span class="text-orange-400">self</span>.rear = (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % cap
+    <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.rear] = data  <span class="text-slate-500">// Stored: ${document.getElementById('arrayInput').value || 'value'}</span>`,
+                
+                dequeue: `<span class="text-purple-400">def</span> <span class="text-blue-400">dequeue</span>(<span class="text-orange-400">self</span>):
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+        <span class="text-purple-400">raise</span> <span class="text-yellow-300">Underflow</span>
+    
+    data = <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.front]
+    
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == <span class="text-orange-400">self</span>.rear:
+        <span class="text-orange-400">self</span>.front = <span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+    <span class="text-purple-400">else</span>:
+        <span class="text-orange-400">self</span>.front = (<span class="text-orange-400">self</span>.front + <span class="text-green-400">1</span>) % cap
+    
+    <span class="text-purple-400">return</span> data`,
+                
+                overflow: `<span class="text-rose-400">ERROR: Queue Overflow!</span>
+<span class="text-slate-500"># The circular array is full.</span>
+<span class="text-slate-500"># Condition: (rear + 1) % capacity == front</span>
+<span class="text-slate-500"># Solution: Increase capacity or dequeue elements</span>`,
+                
+                underflow: `<span class="text-rose-400">ERROR: Queue Underflow!</span>
+<span class="text-slate-500"># The queue is empty.</span>
+<span class="text-slate-500"># Condition: front == -1</span>
+<span class="text-slate-500"># Solution: Enqueue elements first</span>`,
+                
+                reset: `<span class="text-slate-500"># Queue reset to initial state</span>
+<span class="text-orange-400">self</span>.front = -<span class="text-green-400">1</span>
+<span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+<span class="text-orange-400">self</span>.queue = [<span class="text-orange-400">None</span>] * capacity`
+            };
+            
+            codeEl.innerHTML = codes[operation] || codes.reset;
+        }
+
+        // ==================== LINKED LIST QUEUE ====================
+        class Node {
+            constructor(data) {
+                this.data = data;
+                this.next = null;
+            }
+        }
+
+        let llQueue = {
+            head: null,
+            tail: null,
+            size: 0
+        };
+
+        function renderLinkedList() {
+            const container = document.getElementById('linkedListContainer');
+            const emptyMsg = document.getElementById('llEmpty');
+            
+            if (llQueue.size === 0) {
+                container.innerHTML = '<div class="text-slate-500 text-sm italic" id="llEmpty">Empty Queue</div>';
+                document.getElementById('llHead').textContent = 'null';
+                document.getElementById('llTail').textContent = 'null';
+                document.getElementById('llSize').textContent = '0';
+                return;
+            }
+
+            container.innerHTML = '';
+            let current = llQueue.head;
+            let index = 0;
+
+            while (current) {
+                // Node
+                const nodeWrapper = document.createElement('div');
+                nodeWrapper.className = 'flex items-center node-enter';
+                
+                const isHead = current === llQueue.head;
+                const isTail = current === llQueue.tail;
+                
+                let borderClass = 'border-slate-600';
+                if (isHead && isTail) borderClass = 'border-emerald-500 border-amber-500';
+                else if (isHead) borderClass = 'border-emerald-500';
+                else if (isTail) borderClass = 'border-amber-500';
+                
+                const nodeEl = document.createElement('div');
+                nodeEl.className = `ll-node relative bg-slate-800 border-2 ${borderClass} rounded-lg p-3 min-w-[80px] text-center`;
+                if (isHead && isTail) nodeEl.style.border = '2px solid transparent';
+                if (isHead && isTail) nodeEl.style.background = 'linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(45deg, #10b981, #f59e0b) border-box';
+                
+                // Labels
+                if (isHead) {
+                    const label = document.createElement('div');
+                    label.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold';
+                    label.textContent = 'HEAD';
+                    nodeEl.appendChild(label);
+                }
+                if (isTail && !(isHead && isTail)) {
+                    const label = document.createElement('div');
+                    label.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold';
+                    label.textContent = 'TAIL';
+                    nodeEl.appendChild(label);
+                }
+                
+                const dataDiv = document.createElement('div');
+                dataDiv.className = 'text-lg font-bold text-slate-200 code-font';
+                dataDiv.textContent = current.data;
+                
+                const ptrDiv = document.createElement('div');
+                ptrDiv.className = 'text-[10px] text-slate-500 mt-1';
+                ptrDiv.textContent = current.next ? `→ ${current.next.data}` : '→ null';
+                
+                nodeEl.appendChild(dataDiv);
+                nodeEl.appendChild(ptrDiv);
+                nodeWrapper.appendChild(nodeEl);
+                container.appendChild(nodeWrapper);
+
+                // Arrow
+                if (current.next) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'flex items-center px-2';
+                    arrow.innerHTML = `
+                        <svg width="40" height="20" class="text-slate-500">
+                            <defs>
+                                <marker id="arrowhead-${index}" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                                </marker>
+                            </defs>
+                            <line x1="0" y1="10" x2="30" y2="10" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead-${index})" class="arrow"/>
+                        </svg>
+                    `;
+                    container.appendChild(arrow);
+                }
+
+                current = current.next;
+                index++;
+            }
+
+            document.getElementById('llHead').textContent = llQueue.head ? llQueue.head.data : 'null';
+            document.getElementById('llTail').textContent = llQueue.tail ? llQueue.tail.data : 'null';
+            document.getElementById('llSize').textContent = llQueue.size;
+        }
+
+        function llEnqueue() {
+            const input = document.getElementById('llInput');
+            const val = parseInt(input.value);
+            
+            if (isNaN(val)) {
+                alert('Please enter a valid number');
+                return;
+            }
+
+            const newNode = new Node(val);
+            
+            if (!llQueue.head) {
+                llQueue.head = llQueue.tail = newNode;
+            } else {
+                llQueue.tail.next = newNode;
+                llQueue.tail = newNode;
+            }
+            llQueue.size++;
+
+            renderLinkedList();
+            showLLCode('enqueue');
+            input.value = '';
+            input.focus();
+        }
+
+        function llDequeue() {
+            if (!llQueue.head) {
+                showLLCode('underflow');
+                shakeElement(document.getElementById('linkedListContainer'));
+                return;
+            }
+
+            const headNode = document.querySelector('.ll-node');
+            if (headNode) {
+                headNode.classList.add('node-exit');
+            }
+
+            setTimeout(() => {
+                llQueue.head = llQueue.head.next;
+                if (!llQueue.head) llQueue.tail = null;
+                llQueue.size--;
+                renderLinkedList();
+            }, 350);
+
+            showLLCode('dequeue');
+        }
+
+        function resetLL() {
+            llQueue = { head: null, tail: null, size: 0 };
+            renderLinkedList();
+            showLLCode('reset');
+        }
+
+        function showLLCode(operation) {
+            const codeEl = document.getElementById('llCode');
+            const codes = {
+                enqueue: `<span class="text-purple-400">def</span> <span class="text-blue-400">enqueue</span>(<span class="text-orange-400">self</span>, data):
+    new_node = Node(data)
+    
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.tail <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+        <span class="text-orange-400">self</span>.head = <span class="text-orange-400">self</span>.tail = new_node
+    <span class="text-purple-400">else</span>:
+        <span class="text-orange-400">self</span>.tail.next = new_node
+        <span class="text-orange-400">self</span>.tail = new_node`,
+                
+                dequeue: `<span class="text-purple-400">def</span> <span class="text-blue-400">dequeue</span>(<span class="text-orange-400">self</span>):
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.head <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+        <span class="text-purple-400">raise</span> <span class="text-yellow-300">Underflow</span>
+    
+    data = <span class="text-orange-400">self</span>.head.data
+    <span class="text-orange-400">self</span>.head = <span class="text-orange-400">self</span>.head.next
+    
+    <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.head <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+        <span class="text-orange-400">self</span>.tail = <span class="text-orange-400">None</span>
+    
+    <span class="text-purple-400">return</span> data`,
+                
+                underflow: `<span class="text-rose-400">ERROR: Queue Underflow!</span>
+<span class="text-slate-500"># Head is None - queue is empty</span>
+<span class="text-slate-500"># Cannot dequeue from empty queue</span>`,
+                
+                reset: `<span class="text-slate-500"># Queue reset to initial state</span>
+<span class="text-orange-400">self</span>.head = <span class="text-orange-400">None</span>
+<span class="text-orange-400">self</span>.tail = <span class="text-orange-400">None</span>
+<span class="text-orange-400">self</span>.size = <span class="text-green-400">0</span>`
+            };
+            
+            codeEl.innerHTML = codes[operation] || codes.reset;
+        }
+
+        // ==================== UTILITIES ====================
+        function shakeElement(el) {
+            el.style.animation = 'none';
+            el.offsetHeight; // trigger reflow
+            el.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
+            setTimeout(() => el.style.animation = '', 500);
+        }
+
+        // Add shake keyframe dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Reference code toggle
+        const arrayRefCode = `<span class="text-purple-400">class</span> <span class="text-yellow-300">CircularArrayQueue</span>:
+    <span class="text-purple-400">def</span> <span class="text-blue-400">__init__</span>(<span class="text-orange-400">self</span>, capacity):
+        <span class="text-orange-400">self</span>.capacity = capacity
+        <span class="text-orange-400">self</span>.queue = [<span class="text-orange-400">None</span>] * capacity
+        <span class="text-orange-400">self</span>.front = <span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">enqueue</span>(<span class="text-orange-400">self</span>, data):
+        <span class="text-slate-500"># Check if queue is full</span>
+        <span class="text-purple-400">if</span> (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity == <span class="text-orange-400">self</span>.front:
+            <span class="text-purple-400">raise</span> <span class="text-yellow-300">Exception</span>(<span class="text-green-400">"Queue Overflow"</span>)
+        
+        <span class="text-slate-500"># First element</span>
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+            <span class="text-orange-400">self</span>.front = <span class="text-green-400">0</span>
+        
+        <span class="text-orange-400">self</span>.rear = (<span class="text-orange-400">self</span>.rear + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity
+        <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.rear] = data
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">dequeue</span>(<span class="text-orange-400">self</span>):
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == -<span class="text-green-400">1</span>:
+            <span class="text-purple-400">raise</span> <span class="text-yellow-300">Exception</span>(<span class="text-green-400">"Queue Underflow"</span>)
+        
+        data = <span class="text-orange-400">self</span>.queue[<span class="text-orange-400">self</span>.front]
+        
+        <span class="text-slate-500"># Last element removed</span>
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.front == <span class="text-orange-400">self</span>.rear:
+            <span class="text-orange-400">self</span>.front = <span class="text-orange-400">self</span>.rear = -<span class="text-green-400">1</span>
+        <span class="text-purple-400">else</span>:
+            <span class="text-orange-400">self</span>.front = (<span class="text-orange-400">self</span>.front + <span class="text-green-400">1</span>) % <span class="text-orange-400">self</span>.capacity
+        
+        <span class="text-purple-400">return</span> data`;
+
+        const linkedRefCode = `<span class="text-purple-400">class</span> <span class="text-yellow-300">Node</span>:
+    <span class="text-purple-400">def</span> <span class="text-blue-400">__init__</span>(<span class="text-orange-400">self</span>, data):
+        <span class="text-orange-400">self</span>.data = data
+        <span class="text-orange-400">self</span>.next = <span class="text-orange-400">None</span>
+
+<span class="text-purple-400">class</span> <span class="text-yellow-300">LinkedListQueue</span>:
+    <span class="text-purple-400">def</span> <span class="text-blue-400">__init__</span>(<span class="text-orange-400">self</span>):
+        <span class="text-orange-400">self</span>.head = <span class="text-orange-400">self</span>.tail = <span class="text-orange-400">None</span>
+        <span class="text-orange-400">self</span>.size = <span class="text-green-400">0</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">enqueue</span>(<span class="text-orange-400">self</span>, data):
+        new_node = Node(data)
+        
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.tail <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+            <span class="text-orange-400">self</span>.head = <span class="text-orange-400">self</span>.tail = new_node
+        <span class="text-purple-400">else</span>:
+            <span class="text-orange-400">self</span>.tail.next = new_node
+            <span class="text-orange-400">self</span>.tail = new_node
+        
+        <span class="text-orange-400">self</span>.size += <span class="text-green-400">1</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-blue-400">dequeue</span>(<span class="text-orange-400">self</span>):
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.head <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+            <span class="text-purple-400">raise</span> <span class="text-yellow-300">Exception</span>(<span class="text-green-400">"Queue Underflow"</span>)
+        
+        data = <span class="text-orange-400">self</span>.head.data
+        <span class="text-orange-400">self</span>.head = <span class="text-orange-400">self</span>.head.next
+        
+        <span class="text-purple-400">if</span> <span class="text-orange-400">self</span>.head <span class="text-purple-400">is</span> <span class="text-orange-400">None</span>:
+            <span class="text-orange-400">self</span>.tail = <span class="text-orange-400">None</span>
+        
+        <span class="text-orange-400">self</span>.size -= <span class="text-green-400">1</span>
+        <span class="text-purple-400">return</span> data`;
+
+        function showCode(type) {
+            const codeEl = document.getElementById('refCode');
+            const btnArray = document.getElementById('btnArrayCode');
+            const btnLinked = document.getElementById('btnLinkedCode');
+            
+            if (type === 'array') {
+                codeEl.innerHTML = arrayRefCode;
+                btnArray.className = 'px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition-all';
+                btnLinked.className = 'px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all';
+            } else {
+                codeEl.innerHTML = linkedRefCode;
+                btnLinked.className = 'px-4 py-1.5 rounded-lg text-sm font-medium bg-purple-600 text-white transition-all';
+                btnArray.className = 'px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all';
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.target.id === 'arrayInput' && e.key === 'Enter') arrayEnqueue();
+            if (e.target.id === 'llInput' && e.key === 'Enter') llEnqueue();
+        });
+
+        // Initialize
+        renderArray();
+        renderLinkedList();
+    </script>
+</body>
+</html>
