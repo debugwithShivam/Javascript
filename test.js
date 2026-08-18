@@ -4,6 +4,26 @@ arr2.push(3)
 // console.log(arr1)
 // console.log(arr2)
 
-let arr = [1,3,5,7,9,2,4,6,8,10,12,14,16,18,11,13,15,17,19,20]
+// let arr = [1,3,5,7,9,2,4,6,8,10,12,14,16,18,11,13,15,17,19,20]
 
-console.log([...arr].sort(()=>Math.random() - 0.5).slice(0,5))
+// console.log([...arr].sort(()=>Math.random() - 0.5).slice(0,5))
+
+function count(){
+    let value = 2
+   return function() {
+        value++
+        return value
+    }
+ 
+}
+
+let fn = count()
+
+// console.log(count())
+console.log(fn())
+// console.log(count())
+console.log(fn())
+// console.log(count())
+console.log(fn())
+console.log(fn())
+
