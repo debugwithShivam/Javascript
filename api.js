@@ -481,3 +481,13 @@ async function post(url, body) {
     return response.json();
 
 }
+
+
+
+let arr = [2]
+
+
+for(let i = 0;i<arr.length;i++){
+    console.log(arr[i])
+}
+
