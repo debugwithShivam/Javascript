@@ -455,6 +455,8 @@ async function get(url) {
 
 }
 
+
+
 // Usage
 // get(`${BASE_URL}/users`).then(console.log);
 
@@ -484,10 +486,12 @@ async function post(url, body) {
 
 
 
-let arr = [2]
-
+let arr = [30]
+let result = []
 
 for(let i = 0;i<arr.length;i++){
-    console.log(arr[i])
+    result.push(arr[i]-1,arr[i],arr[i]+1)
 }
+
+console.log(result)
 
