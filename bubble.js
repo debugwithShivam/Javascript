@@ -11,23 +11,26 @@
 
 // module.exports = bubbleSort;
 
-function a() 
-{
-let count=0;
-b() 
-return count++; 
-}
-function b()
-{
-  let count=0;
-a()
-return  count++
-}
-function c() 
-{
-  console.log(a());
-  console.log(b());
+// function a() 
+// {
+// let count=0;
+// b() 
+// return count++; 
+// }
+// function b()
+// {
+//   let count=0;
+// a()
+// return  count++
+// }
+// function c() 
+// {
+//   console.log(a());
+//   console.log(b());
   
-}
-c()
+// }
+// c()
+
+
+
 
