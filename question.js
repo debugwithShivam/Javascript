@@ -1,5 +1,3 @@
-
-
 let arr = [1, 1, 2, 2, 3, 3, 4, 4];
 let result = [];
 for (let i = 0; i < arr.length; i++) {
@@ -15,15 +13,16 @@ for (let i = 0; i < arr.length; i++) {
     };
 };
 
-// console.log(result);
+console.log(result);
+// 1 == 
 
-let array = [1, 1, 2, 2, 3, 3, 4, 4];
+// let array = [1, 1, 2, 2, 3, 3, 4, 4];
 
-for (let i = 1; i < array.length; i++) {
-    if (array[i] != array[i - 1]) {
+// for (let i = 1; i < array.length; i++) {
+    // if (array[i] != array[i - 1]) {
         // console.log(array[i]);
-    }
-    console.log(array[i-1]);
-}
+    // }
+    // console.log(array[i-1]);
+// }
 
-1 
+// 1 
